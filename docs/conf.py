@@ -7,10 +7,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = '{{ project }}'
-copyright = '{{ copyright }}'
-author = '{{ author }}'
-release = '{{ release }}'
+project = 'Final Project CSCI 310'
+copyright = '2025, Bryce Kwiecinski'
+author = 'Bryce Kwiecinski'
+release = '1.0'
 
 import os
 import sys
@@ -25,11 +25,11 @@ extensions = [
     'sphinx.ext.napoleon',
 ]
 
-templates_path = ['{{ dot }}templates']
-exclude_patterns = [{{ exclude_patterns }}]
+templates_path = ['_templates']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'alabaster'
-html_static_path = ['{{ dot }}static']
+html_static_path = ['_static']

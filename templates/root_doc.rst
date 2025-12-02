@@ -1,4 +1,4 @@
-.. {{ project }} documentation master file, created by
+.. {{ CSCI 310 Final Project }} documentation master file, created by
    sphinx-quickstart on {{ now }}.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -9,7 +9,7 @@
 CHANGE THE NAME OF THE MODULE hello BELOW AFTER YOU CHANGE THE NAME OF hello.py TO MATCH YOUR PROJECT!
 Then you can change these documentation lines
 
-.. automodule:: hello
+.. automodule:: UNL_Parking
    :members:
    :undoc-members:
    :show-inheritance:
