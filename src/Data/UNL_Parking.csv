@@ -1,0 +1,15 @@
+﻿Lot ID,Lot Name,Allowed Passes
+L1,14th & Avery Garage,A;C;GR
+L2,Stadium Drive Garage,A;C;RE
+L3,East Campus Loop Lot,B;C;GR
+L4,Harper-Schramm-Smith Lot,A;B
+L5,Devaney Sports Center Lot,C;RE
+L6,16th & X Street Lot,A;C
+L7,North Stadium Lot,RE
+,,
+PassID,Description,Daily Price
+A,Student Commuter Permit,8
+B,Resident Student Permit,6
+C,Perimeter Permit,3
+GR,Graduate Student Permit,7
+RE,Reserved Event/Gameday Permit,15
