@@ -1,28 +1,81 @@
-# CSCI310-Template-2025
-Template for assignments in CSCI310 Fall 2025
+UNL Parking Graph Search Tool
+Project Overview
 
-## Prerequisites
-These instructions assume the following:
-1. [VS Code](https://code.visualstudio.com/download) is installed
-1. [uv](https://docs.astral.sh/uv/) is installed
+Finding parking on UNL’s campus is confusing and expensive — especially when different parking passes grant access to different lots. This project uses graph analysis to help students quickly determine where they can legally park or which pass they need for a specific lot.
 
-## Required setups
-1. Create a new repository selecting this one as a Template
-1. Open VS Code
-1. Clone your new repository
-1. Open a terminal window
-1. Create a virtual environment (`uv venv .venv --python 3.12`)
-1. Activate the virtual environment as the output from creating it says to
-1. Install [Sphinx](https://www.sphinx-doc.org/en/master/) (`uv pip install sphinx`)
-1. Change directory in terminal to the docs folder (`cd docs`)
-1. Run `sphinx-quickstart -t ../templates`
-1. Run `make html` on a Mac or `.\make.bat html` on Windows
-1. This should finish with `build succeeded`
-1. Add `conf.py` (should just show as modified) and `index.rst` (should show as new file) to your repository
-1. Change the name of `hello.py` to something related to your project
-1. Change the name `hello` in `index.rst` to the name of your file
-1. Modify both `conf.py` and `index.rst` to have the correct project name, author, and date
-1. Modify your .py file to have your name in the top docstring and to describe your project
-1. Make the documentation again by running `make html` on a Mac or `.\make.bat html` on Windows
-1. If it runs successfully, you are ready to modify the code to implement your project
-1. Lastly, modify this `README.md` file to match your project
+The system models parking as a graph:
+
+Nodes = parking lots + parking passes
+
+Edges = which passes allow access to which lots (permissions graph)
+
+Users can perform directional queries:
+
+Choose a pass → find all valid parking lots
+
+Choose a parking lot → find all passes that work there
+
+This allows a clear visualization of campus parking accessibility.
+
+Technologies & Libraries
+Purpose	Tool
+Graph structure + BFS/DFS search	NetworkX
+Visualization (Progress Report 2)	NetworkX + Matplotlib
+Data management	Python dictionaries / CSV (mock dataset)
+Documentation	Sphinx + GitHub Pages
+
+Data Source
+
+Initial data will be created manually using a small set of UNL parking lots and passes:
+
+Example mock dataset:
+
+Passes: A, C, R, Metered
+
+Lots: Lot A1, A2, C1, Stadium, Library Garage, etc.
+
+Pricing rules vary by day of week (placeholder for future real data integration)
+
+Later improvements may use real UNL parking map data or API access if approved.
+
+Graph Algorithms Used
+Algorithm	Purpose
+Breadth-First Search (BFS)	Find all valid lots reachable from a pass
+Depth-First Search (DFS)	Validate connectivity + check access graph structure
+Optional extension:	Weighted graph search for pricing optimization
+
+The tool will ensure graph-based searching instead of simple list lookups — meeting project constraints.
+
+Expected Output / Visuals
+
+Milestone outputs include:
+
+Progress Report 1:
+
+Working command-line interface:
+
+Do you want to search by (P)ass or (L)ot?
+→ P
+Enter Pass: C
+You can park in: Lot C1, Lot A2, Library Garage
+
+
+Progress Report 2:
+
+Graph visualization showing pass→lot edges with colored node types
+
+Final Submission:
+
+Milestones & Timeline
+Milestone	Goals	Due
+Progress Report 1	Build graph structure + BFS search + CLI	Dec 2
+Progress Report 2	Add visualization + DFS checks + pricing logic prototype	Dec 5
+Final Code + Docs	Fully built, documented, hosted	Dec 8
+
+Student pass sharing marketplace
+
+Pricing engine based on demand (peak vs non-peak)
+
+Integrate geolocation + walking distance calculations
+
+Mobile UI for real campus navigation
