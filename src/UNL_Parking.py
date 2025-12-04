@@ -98,12 +98,32 @@ def search_by_pass(self, pass_name):
     return lots
 
 
-    # ---------------------------
-    # Search: Lot to Passes (Reverse)
-    # ---------------------------
-    def search_by_lot(self, lot_name):
-        """Return all passes that can access a given lot."""
-        pass
+# ---------------------------
+# Search: Lot to Passes (Reverse)
+# ---------------------------
+def search_by_lot(self, lot_name):
+    """
+    Return all passes that can access a given lot.
+
+    Parameters
+    ----------
+    lot_name : str
+        The name of the parking lot to search for.
+
+    Returns
+    -------
+    list
+        List of pass names that have access to this lot.
+    """
+    if lot_name not in self.graph:
+        raise ValueError(f"Lot '{lot_name}' not found in the graph.")
+
+    # Incoming edges point from passes to this lot
+    passes = [node for node in self.graph.predecessors(lot_name)
+              if self.graph.nodes[node]['type'] == 'pass']
+
+    return passes
+
 
     # ---------------------------
     # DFS Validation / Connectivity
