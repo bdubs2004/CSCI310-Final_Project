@@ -68,7 +68,6 @@ def build_graph(self):
             # Add directed edge: pass → lot
             self.graph.add_edge(permit, lot)
 
-
 # ---------------------------
 # Search: Pass → Lots (BFS)
 # ---------------------------
@@ -97,7 +96,6 @@ def search_by_pass(self, pass_name):
 
     return lots
 
-
 # ---------------------------
 # Search: Lot to Passes (Reverse)
 # ---------------------------
@@ -124,13 +122,35 @@ def search_by_lot(self, lot_name):
 
     return passes
 
+# ---------------------------
+# DFS Connectivity Search
+# ---------------------------
+def validate_graph(self):
+    """
+    Use DFS to check if graph has isolated nodes.
 
-    # ---------------------------
-    # DFS Validation / Connectivity
-    # ---------------------------
-    def validate_graph(self):
-        """Use DFS to check if graph has isolated nodes."""
-        pass
+    Returns
+    -------
+    dict
+        A dictionary with two lists:
+        - 'isolated_passes': passes with no connections
+        - 'isolated_lots': lots with no connections
+    """
+    isolated_passes = []
+    isolated_lots = []
+
+    for node, data in self.graph.nodes(data=True):
+        # A node is isolated if it has no neighbors (in or out)
+        if self.graph.degree(node) == 0:
+            if data['type'] == 'pass':
+                isolated_passes.append(node)
+            elif data['type'] == 'lot':
+                isolated_lots.append(node)
+
+    return {
+        'isolated_passes': isolated_passes,
+        'isolated_lots': isolated_lots
+    }
 
     # ---------------------------
     # Visualization
