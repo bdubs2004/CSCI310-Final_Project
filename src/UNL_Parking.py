@@ -12,9 +12,24 @@ import networkx as nx
 from pathlib import Path
 import matplotlib.pyplot as plt
 
+
 class UNLParking:
     """
     Main class for building and querying the UNL parking graph.
+
+    Parameters
+    ----------
+    filepath : str or Path
+        Path to the Excel file containing UNL parking data.
+
+    Attributes
+    ----------
+    filepath : Path
+        Filepath to the dataset.
+    df : pandas.DataFrame or None
+        Loaded dataset.
+    graph : networkx.DiGraph
+        Directed graph containing passes and lots.
     """
 
     def __init__(self, filepath):
@@ -31,7 +46,14 @@ class UNLParking:
     # Data Loading
     # ---------------------------
     def load_data(self):
-        """Load the Excel dataset into a DataFrame."""
+        """
+        Load the Excel dataset into a DataFrame.
+
+        Returns
+        -------
+        pandas.DataFrame
+            The loaded dataset.
+        """
         self.df = pd.read_excel(self.filepath)
         return self.df
 
@@ -40,9 +62,21 @@ class UNLParking:
     # ---------------------------
     def build_graph(self):
         """
-        Build the pass to lot graph using the data.
-        Nodes: passes and lots
-        Edges: which passes allow which lots
+        Build the pass to lot graph using the dataset.
+
+        Nodes
+        -----
+        - Pass nodes (type='pass')
+        - Lot nodes (type='lot')
+
+        Edges
+        -----
+        - A directed edge is added from each pass to each lot it allows.
+
+        Raises
+        ------
+        ValueError
+            If data has not been loaded before calling this method.
         """
         if self.df is None:
             raise ValueError("Data not loaded. Call load_data() first.")
@@ -57,7 +91,7 @@ class UNLParking:
             permit = row['Permit']
             lots = row['City Campus Parking/Location(s)']
 
-            # Handle multiple lots in one cell (split by comma if needed)
+            # Handle multiple
             lot_list = [lot.strip() for lot in lots.split(',')]
 
             for lot in lot_list:
@@ -82,8 +116,13 @@ class UNLParking:
 
         Returns
         -------
-        list
+        list of str
             List of lot names accessible by this pass.
+
+        Raises
+        ------
+        ValueError
+            If the pass name is not found in the graph.
         """
         if pass_name not in self.graph:
             raise ValueError(f"Pass '{pass_name}' not found in the graph.")
@@ -110,15 +149,22 @@ class UNLParking:
 
         Returns
         -------
-        list
-            List of pass names that have access to this lot.
+        list of str
+            List of passes that can access the specified lot.
+
+        Raises
+        ------
+        ValueError
+            If the lot name is not found in the graph.
         """
         if lot_name not in self.graph:
             raise ValueError(f"Lot '{lot_name}' not found in the graph.")
 
         # Incoming edges point from passes to this lot
-        passes = [node for node in self.graph.predecessors(lot_name)
-                if self.graph.nodes[node]['type'] == 'pass']
+        passes = [
+            node for node in self.graph.predecessors(lot_name)
+            if self.graph.nodes[node]['type'] == 'pass'
+        ]
 
         return passes
 
@@ -127,20 +173,21 @@ class UNLParking:
     # ---------------------------
     def validate_graph(self):
         """
-        Use DFS to check if graph has isolated nodes.
+        Check for isolated nodes in the graph.
 
         Returns
         -------
         dict
             A dictionary with two lists:
-            - 'isolated_passes': passes with no connections
-            - 'isolated_lots': lots with no connections
+            - isolated_passes : list of str
+                Passes with no edges.
+            - isolated_lots : list of str
+                Lots with no edges.
         """
         isolated_passes = []
         isolated_lots = []
 
         for node, data in self.graph.nodes(data=True):
-            # A node is isolated if it has no neighbors (in or out)
             if self.graph.degree(node) == 0:
                 if data['type'] == 'pass':
                     isolated_passes.append(node)
@@ -157,7 +204,15 @@ class UNLParking:
     # ---------------------------
     def draw_graph(self):
         """
-        Left-right bipartite layout.
+        Draw a left-right graph showing passes on the left and
+        lots on the right. Passes are drawn as blue squares, lots as green
+        rectangles.
+
+        Notes
+        -----
+        - Uses a custom vertical spacing layout.
+        - Uses matplotlib patches for shapes.
+        - Shows arrows representing allowed parking relationships.
         """
 
         pass_nodes = [n for n, attr in self.graph.nodes(data=True) if attr['type'] == 'pass']
@@ -165,6 +220,23 @@ class UNLParking:
 
         # Vertical positions with total_height fraction
         def vertical_positions(nodes, x_pos, total_height=0.9):
+            """
+            Compute evenly spaced vertical positions for a column of nodes.
+
+            Parameters
+            ----------
+            nodes : list of str
+                Node names.
+            x_pos : float
+                The x-coordinate to assign to each node.
+            total_height : float, optional
+                Fraction of vertical axis to occupy.
+
+            Returns
+            -------
+            dict
+                Mapping of node → (x, y) coordinates.
+            """
             n = len(nodes)
             if n == 1:
                 return {nodes[0]: (x_pos, 0.5)}
@@ -178,11 +250,11 @@ class UNLParking:
 
         fig, ax = plt.subplots(figsize=(12, 6))
 
-        # --- Draw pass nodes as squares ---
-        square_size = 0.06  # adjust as needed
+        # Draw pass nodes as squares
+        square_size = 0.06
         for node in pass_nodes:
             x, y = pos[node]
-            rect = patches.Rectangle(
+            rect = plt.Rectangle(
                 (x - square_size/2, y - square_size/2),
                 square_size,
                 square_size,
@@ -197,7 +269,7 @@ class UNLParking:
         rect_height = 0.06
         for node in lot_nodes:
             x, y = pos[node]
-            rect = patches.Rectangle(
+            rect = plt.Rectangle(
                 (x - rect_width / 2, y - rect_height / 2),
                 rect_width,
                 rect_height,
@@ -236,17 +308,24 @@ class UNLParking:
         plt.show()
 
     # ---------------------------
-    # Command-Line Interface
+    # Command Line Interface
     # ---------------------------
     def cli(self):
         """
-        Simple CLI for searching UNL parking passes and lots.
+        Run an interactive command line interface for users to query
+        pass to lot and lot to pass.
 
-        Commands:
-        - Type 'P' to search by pass
-        - Type 'L' to search by lot
-        - Type 'quit' to exit
+        Commands
+        --------
+        - 'P' : Search by pass
+        - 'L' : Search by lot
+        - 'quit' : Exit the program
+
+        Notes
+        -----
+        Provides text prompts and prints search results to the console.
         """
+
         print("Welcome to the UNL Parking Graph Search Tool!")
         print("Type 'P' to search by Pass, 'L' to search by Lot, or 'quit' to exit: ")
 
@@ -279,28 +358,29 @@ class UNLParking:
             else:
                 print("Invalid choice. Type 'P', 'L', or 'quit'.")
 
+
 # ---------------------------
 # Script Execution
 # ---------------------------
 if __name__ == "__main__":
     # Opens data
     parking = UNLParking("UNL_Parking.xlsx")
-    
+
     # Load the data
     parking.load_data()
-    
+
     # Build the graph
     parking.build_graph()
-    
+
     # Validate graph
     isolated = parking.validate_graph()
     if isolated['isolated_passes'] or isolated['isolated_lots']:
         print("Warning: There are isolated nodes in the graph.")
         print("Isolated passes:", isolated['isolated_passes'])
         print("Isolated lots:", isolated['isolated_lots'])
-    
+
     # Draw the graph every time
     parking.draw_graph()
-    
+
     # Launch the CLI
     parking.cli()
