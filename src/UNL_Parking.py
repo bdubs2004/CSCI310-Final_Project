@@ -35,16 +35,39 @@ class UNLParking:
         self.df = pd.read_excel(self.filepath)
         return self.df
 
-    # ---------------------------
-    # Graph Construction
-    # ---------------------------
-    def build_graph(self):
-        """
-        Build the pass→lot graph using the loaded data.
-        Nodes: passes + lots
-        Edges: which passes allow which lots
-        """
-        pass
+# ---------------------------
+# Graph Construction
+# ---------------------------
+def build_graph(self):
+    """
+    Build the pass to lot graph using the data.
+    Nodes: passes and lots
+    Edges: which passes allow which lots
+    """
+    if self.df is None:
+        raise ValueError("Data not loaded. Call load_data() first.")
+
+    # Add pass nodes
+    passes = self.df['Permit'].unique()
+    for p in passes:
+        self.graph.add_node(p, type='pass')
+
+    # Add lot nodes and edges
+    for _, row in self.df.iterrows():
+        permit = row['Permit']
+        lots = row['City Campus Parking/Location(s)']
+
+        # Handle multiple lots in one cell (split by comma if needed)
+        lot_list = [lot.strip() for lot in lots.split(',')]
+
+        for lot in lot_list:
+            # Add lot node if not already added
+            if lot not in self.graph:
+                self.graph.add_node(lot, type='lot')
+
+            # Add directed edge: pass → lot
+            self.graph.add_edge(permit, lot)
+
 
     # ---------------------------
     # Search: Pass → Lots (BFS)
