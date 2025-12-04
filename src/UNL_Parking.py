@@ -187,12 +187,50 @@ def draw_graph(self):
     plt.show()
 
 
-    # ---------------------------
-    # Command Line Interface
-    # ---------------------------
-    def cli(self):
-        """Simple CLI for Progress Report 1."""
-        pass
+# ---------------------------
+# Command-Line Interface
+# ---------------------------
+def cli(self):
+    """
+    Simple CLI for searching UNL parking passes and lots.
+
+    Commands:
+    - Type 'P' to search by pass
+    - Type 'L' to search by lot
+    - Type 'quit' to exit
+    """
+    print("Welcome to the UNL Parking Graph Search Tool!")
+    print("Type 'P' to search by Pass, 'L' to search by Lot, or 'quit' to exit.")
+
+    while True:
+        choice = input("\nSearch by (P)ass or (L)ot? ").strip().upper()
+
+        if choice == 'QUIT':
+            print("Exiting UNL Parking Graph Search Tool. Goodbye!")
+            break
+        elif choice == 'P':
+            pass_name = input("Enter Pass name: ").strip()
+            try:
+                lots = self.search_by_pass(pass_name)
+                if lots:
+                    print(f"You can park in: {', '.join(lots)}")
+                else:
+                    print(f"No lots found for pass '{pass_name}'.")
+            except ValueError as e:
+                print(e)
+        elif choice == 'L':
+            lot_name = input("Enter Lot name: ").strip()
+            try:
+                passes = self.search_by_lot(lot_name)
+                if passes:
+                    print(f"Passes that can access '{lot_name}': {', '.join(passes)}")
+                else:
+                    print(f"No passes found for lot '{lot_name}'.")
+            except ValueError as e:
+                print(e)
+        else:
+            print("Invalid choice. Type 'P', 'L', or 'quit'.")
+
 
 
 # ---------------------------
