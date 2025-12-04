@@ -10,7 +10,7 @@ Date: 2025 December 03
 import pandas as pd
 import networkx as nx
 from pathlib import Path
-
+import matplotlib.pyplot as plt
 
 class UNLParking:
     """
@@ -152,12 +152,40 @@ def validate_graph(self):
         'isolated_lots': isolated_lots
     }
 
-    # ---------------------------
-    # Visualization
-    # ---------------------------
-    def draw_graph(self):
-        """Draw the permissions graph."""
-        pass
+# ---------------------------
+# Visualization (Matplotlib + NetworkX)
+# ---------------------------
+def draw_graph(self):
+    """
+    Draw the graph.
+    
+    Pass nodes and lot nodes are colored differently.
+    Edges show which passes can access which lots.
+    """
+
+    # Position nodes using spring layout
+    pos = nx.spring_layout(self.graph, seed=42)  # fixed seed for consistent layout
+
+    # Separate nodes by type
+    pass_nodes = [n for n, attr in self.graph.nodes(data=True) if attr['type'] == 'pass']
+    lot_nodes = [n for n, attr in self.graph.nodes(data=True) if attr['type'] == 'lot']
+
+    # Draw nodes
+    nx.draw_networkx_nodes(self.graph, pos, nodelist=pass_nodes, node_color='lightblue', node_shape='s', label='Passes')
+    nx.draw_networkx_nodes(self.graph, pos, nodelist=lot_nodes, node_color='lightgreen', node_shape='o', label='Lots')
+
+    # Draw edges
+    nx.draw_networkx_edges(self.graph, pos, arrowstyle='->', arrowsize=15, edge_color='gray')
+
+    # Draw labels
+    nx.draw_networkx_labels(self.graph, pos, font_size=8)
+
+    # Legend and title
+    plt.legend(scatterpoints=1)
+    plt.title("UNL Parking Pass → Lot Graph")
+    plt.axis('off')
+    plt.show()
+
 
     # ---------------------------
     # Command Line Interface
