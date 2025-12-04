@@ -234,10 +234,25 @@ def cli(self):
 
 
 # ---------------------------
-# if __name__ block
+# Script Execution
 # ---------------------------
 if __name__ == "__main__":
+    # Create the UNLParking object with your dataset path
     parking = UNLParking("src/data/parking_data.xlsx")
+    
+    # Load the data
     parking.load_data()
-    # parking.build_graph()
-    # parking.cli()
+    
+    # Build the graph
+    parking.build_graph()
+    
+    # Validate graph
+    isolated = parking.validate_graph()
+    if isolated['isolated_passes'] or isolated['isolated_lots']:
+        print("Warning: There are isolated nodes in the graph.")
+        print("Isolated passes:", isolated['isolated_passes'])
+        print("Isolated lots:", isolated['isolated_lots'])
+    
+    # Launch the CLI
+    parking.cli()
+
