@@ -35,210 +35,256 @@ class UNLParking:
         self.df = pd.read_excel(self.filepath)
         return self.df
 
-# ---------------------------
-# Graph Construction
-# ---------------------------
-def build_graph(self):
-    """
-    Build the pass to lot graph using the data.
-    Nodes: passes and lots
-    Edges: which passes allow which lots
-    """
-    if self.df is None:
-        raise ValueError("Data not loaded. Call load_data() first.")
+    # ---------------------------
+    # Graph Construction
+    # ---------------------------
+    def build_graph(self):
+        """
+        Build the pass to lot graph using the data.
+        Nodes: passes and lots
+        Edges: which passes allow which lots
+        """
+        if self.df is None:
+            raise ValueError("Data not loaded. Call load_data() first.")
 
-    # Add pass nodes
-    passes = self.df['Permit'].unique()
-    for p in passes:
-        self.graph.add_node(p, type='pass')
+        # Add pass nodes
+        passes = self.df['Permit'].unique()
+        for p in passes:
+            self.graph.add_node(p, type='pass')
 
-    # Add lot nodes and edges
-    for _, row in self.df.iterrows():
-        permit = row['Permit']
-        lots = row['City Campus Parking/Location(s)']
+        # Add lot nodes and edges
+        for _, row in self.df.iterrows():
+            permit = row['Permit']
+            lots = row['City Campus Parking/Location(s)']
 
-        # Handle multiple lots in one cell (split by comma if needed)
-        lot_list = [lot.strip() for lot in lots.split(',')]
+            # Handle multiple lots in one cell (split by comma if needed)
+            lot_list = [lot.strip() for lot in lots.split(',')]
 
-        for lot in lot_list:
-            # Add lot node if not already added
-            if lot not in self.graph:
-                self.graph.add_node(lot, type='lot')
+            for lot in lot_list:
+                # Add lot node if not already added
+                if lot not in self.graph:
+                    self.graph.add_node(lot, type='lot')
 
-            # Add directed edge: pass → lot
-            self.graph.add_edge(permit, lot)
+                # Add directed edge: pass → lot
+                self.graph.add_edge(permit, lot)
 
-# ---------------------------
-# Search: Pass → Lots (BFS)
-# ---------------------------
-def search_by_pass(self, pass_name):
-    """
-    Return all lots reachable from a pass using BFS.
+    # ---------------------------
+    # Search: Pass → Lots (BFS)
+    # ---------------------------
+    def search_by_pass(self, pass_name):
+        """
+        Return all lots reachable from a pass using BFS.
 
-    Parameters
-    ----------
-    pass_name : str
-        The name of the parking pass to search for.
+        Parameters
+        ----------
+        pass_name : str
+            The name of the parking pass to search for.
 
-    Returns
-    -------
-    list
-        List of lot names accessible by this pass.
-    """
-    if pass_name not in self.graph:
-        raise ValueError(f"Pass '{pass_name}' not found in the graph.")
+        Returns
+        -------
+        list
+            List of lot names accessible by this pass.
+        """
+        if pass_name not in self.graph:
+            raise ValueError(f"Pass '{pass_name}' not found in the graph.")
 
-    # Perform a BFS from the pass node
-    bfs_nodes = nx.bfs_tree(self.graph, source=pass_name).nodes()
+        # Perform a BFS from the pass node
+        bfs_nodes = nx.bfs_tree(self.graph, source=pass_name).nodes()
 
-    # Filters only lot nodes
-    lots = [node for node in bfs_nodes if self.graph.nodes[node]['type'] == 'lot']
+        # Filters only lot nodes
+        lots = [node for node in bfs_nodes if self.graph.nodes[node]['type'] == 'lot']
 
-    return lots
+        return lots
 
-# ---------------------------
-# Search: Lot to Passes (Reverse)
-# ---------------------------
-def search_by_lot(self, lot_name):
-    """
-    Return all passes that can access a given lot.
+    # ---------------------------
+    # Search: Lot to Passes (Reverse)
+    # ---------------------------
+    def search_by_lot(self, lot_name):
+        """
+        Return all passes that can access a given lot.
 
-    Parameters
-    ----------
-    lot_name : str
-        The name of the parking lot to search for.
+        Parameters
+        ----------
+        lot_name : str
+            The name of the parking lot to search for.
 
-    Returns
-    -------
-    list
-        List of pass names that have access to this lot.
-    """
-    if lot_name not in self.graph:
-        raise ValueError(f"Lot '{lot_name}' not found in the graph.")
+        Returns
+        -------
+        list
+            List of pass names that have access to this lot.
+        """
+        if lot_name not in self.graph:
+            raise ValueError(f"Lot '{lot_name}' not found in the graph.")
 
-    # Incoming edges point from passes to this lot
-    passes = [node for node in self.graph.predecessors(lot_name)
-              if self.graph.nodes[node]['type'] == 'pass']
+        # Incoming edges point from passes to this lot
+        passes = [node for node in self.graph.predecessors(lot_name)
+                if self.graph.nodes[node]['type'] == 'pass']
 
-    return passes
+        return passes
 
-# ---------------------------
-# DFS Connectivity Search
-# ---------------------------
-def validate_graph(self):
-    """
-    Use DFS to check if graph has isolated nodes.
+    # ---------------------------
+    # DFS Connectivity Search
+    # ---------------------------
+    def validate_graph(self):
+        """
+        Use DFS to check if graph has isolated nodes.
 
-    Returns
-    -------
-    dict
-        A dictionary with two lists:
-        - 'isolated_passes': passes with no connections
-        - 'isolated_lots': lots with no connections
-    """
-    isolated_passes = []
-    isolated_lots = []
+        Returns
+        -------
+        dict
+            A dictionary with two lists:
+            - 'isolated_passes': passes with no connections
+            - 'isolated_lots': lots with no connections
+        """
+        isolated_passes = []
+        isolated_lots = []
 
-    for node, data in self.graph.nodes(data=True):
-        # A node is isolated if it has no neighbors (in or out)
-        if self.graph.degree(node) == 0:
-            if data['type'] == 'pass':
-                isolated_passes.append(node)
-            elif data['type'] == 'lot':
-                isolated_lots.append(node)
+        for node, data in self.graph.nodes(data=True):
+            # A node is isolated if it has no neighbors (in or out)
+            if self.graph.degree(node) == 0:
+                if data['type'] == 'pass':
+                    isolated_passes.append(node)
+                elif data['type'] == 'lot':
+                    isolated_lots.append(node)
 
-    return {
-        'isolated_passes': isolated_passes,
-        'isolated_lots': isolated_lots
-    }
+        return {
+            'isolated_passes': isolated_passes,
+            'isolated_lots': isolated_lots
+        }
 
-# ---------------------------
-# Visualization (Matplotlib + NetworkX)
-# ---------------------------
-def draw_graph(self):
-    """
-    Draw the graph.
-    
-    Pass nodes and lot nodes are colored differently.
-    Edges show which passes can access which lots.
-    """
+    # ---------------------------
+    # Visualizations
+    # ---------------------------
+    def draw_graph(self):
+        """
+        Left-right bipartite layout.
+        """
 
-    # Position nodes using spring layout
-    pos = nx.spring_layout(self.graph, seed=42)  # fixed seed for consistent layout
+        pass_nodes = [n for n, attr in self.graph.nodes(data=True) if attr['type'] == 'pass']
+        lot_nodes = [n for n, attr in self.graph.nodes(data=True) if attr['type'] == 'lot']
 
-    # Separate nodes by type
-    pass_nodes = [n for n, attr in self.graph.nodes(data=True) if attr['type'] == 'pass']
-    lot_nodes = [n for n, attr in self.graph.nodes(data=True) if attr['type'] == 'lot']
+        # Vertical positions with total_height fraction
+        def vertical_positions(nodes, x_pos, total_height=0.9):
+            n = len(nodes)
+            if n == 1:
+                return {nodes[0]: (x_pos, 0.5)}
+            spacing = total_height / (n - 1)
+            start = (1 - total_height) / 2
+            return {node: (x_pos, start + i * spacing) for i, node in enumerate(nodes)}
 
-    # Draw nodes
-    nx.draw_networkx_nodes(self.graph, pos, nodelist=pass_nodes, node_color='lightblue', node_shape='s', label='Passes')
-    nx.draw_networkx_nodes(self.graph, pos, nodelist=lot_nodes, node_color='lightgreen', node_shape='o', label='Lots')
+        pos = {}
+        pos.update(vertical_positions(pass_nodes, x_pos=0, total_height=0.9))
+        pos.update(vertical_positions(lot_nodes, x_pos=2, total_height=0.9))
 
-    # Draw edges
-    nx.draw_networkx_edges(self.graph, pos, arrowstyle='->', arrowsize=15, edge_color='gray')
+        fig, ax = plt.subplots(figsize=(12, 6))
 
-    # Draw labels
-    nx.draw_networkx_labels(self.graph, pos, font_size=8)
+        # --- Draw pass nodes as squares ---
+        square_size = 0.06  # adjust as needed
+        for node in pass_nodes:
+            x, y = pos[node]
+            rect = patches.Rectangle(
+                (x - square_size/2, y - square_size/2),
+                square_size,
+                square_size,
+                facecolor='lightblue',
+                edgecolor='black',
+                linewidth=1.5
+            )
+            ax.add_patch(rect)
 
-    # Legend and title
-    plt.legend(scatterpoints=1)
-    plt.title("UNL Parking Pass → Lot Graph")
-    plt.axis('off')
-    plt.show()
+        # Draw lot nodes as rectangles
+        rect_width = 0.75
+        rect_height = 0.06
+        for node in lot_nodes:
+            x, y = pos[node]
+            rect = patches.Rectangle(
+                (x - rect_width / 2, y - rect_height / 2),
+                rect_width,
+                rect_height,
+                facecolor='lightgreen',
+                edgecolor='black',
+                linewidth=1.5
+            )
+            ax.add_patch(rect)
 
+        # Draw edges
+        for start, end in self.graph.edges():
+            x1, y1 = pos[start]
+            x2, y2 = pos[end]
+            ax.annotate(
+                '',
+                xy=(x2, y2),
+                xytext=(x1, y1),
+                arrowprops=dict(arrowstyle='->', color='gray', lw=1.2)
+            )
 
-# ---------------------------
-# Command-Line Interface
-# ---------------------------
-def cli(self):
-    """
-    Simple CLI for searching UNL parking passes and lots.
+        # Draw labels
+        for node, (x, y) in pos.items():
+            ax.text(x, y, node, fontsize=8, ha='center', va='center')
 
-    Commands:
-    - Type 'P' to search by pass
-    - Type 'L' to search by lot
-    - Type 'quit' to exit
-    """
-    print("Welcome to the UNL Parking Graph Search Tool!")
-    print("Type 'P' to search by Pass, 'L' to search by Lot, or 'quit' to exit.")
+        # Legend
+        ax.scatter([], [], c='lightblue', marker='s', s=200, label='Passes')
+        ax.scatter([], [], c='lightgreen', marker='s', s=200, label='Lots')
+        ax.legend(loc='lower right')
 
-    while True:
-        choice = input("\nSearch by (P)ass or (L)ot? ").strip().upper()
+        # Axis settings
+        ax.set_xlim(-0.5, 2.5 + rect_width/2)
+        ax.set_ylim(0, 1)
+        ax.axis('off')
+        plt.title("UNL Parking Pass → Lot Graph")
+        plt.tight_layout()
+        plt.show()
 
-        if choice == 'QUIT':
-            print("Exiting UNL Parking Graph Search Tool. Goodbye!")
-            break
-        elif choice == 'P':
-            pass_name = input("Enter Pass name: ").strip()
-            try:
-                lots = self.search_by_pass(pass_name)
-                if lots:
-                    print(f"You can park in: {', '.join(lots)}")
-                else:
-                    print(f"No lots found for pass '{pass_name}'.")
-            except ValueError as e:
-                print(e)
-        elif choice == 'L':
-            lot_name = input("Enter Lot name: ").strip()
-            try:
-                passes = self.search_by_lot(lot_name)
-                if passes:
-                    print(f"Passes that can access '{lot_name}': {', '.join(passes)}")
-                else:
-                    print(f"No passes found for lot '{lot_name}'.")
-            except ValueError as e:
-                print(e)
-        else:
-            print("Invalid choice. Type 'P', 'L', or 'quit'.")
+    # ---------------------------
+    # Command-Line Interface
+    # ---------------------------
+    def cli(self):
+        """
+        Simple CLI for searching UNL parking passes and lots.
 
+        Commands:
+        - Type 'P' to search by pass
+        - Type 'L' to search by lot
+        - Type 'quit' to exit
+        """
+        print("Welcome to the UNL Parking Graph Search Tool!")
+        print("Type 'P' to search by Pass, 'L' to search by Lot, or 'quit' to exit: ")
 
+        while True:
+            choice = input("\nSearch by (P)ass or (L)ot? Or type 'quit' to quit:").strip().upper()
+
+            if choice == 'QUIT':
+                print("Exiting UNL Parking Graph Search Tool. Goodbye!")
+                break
+            elif choice == 'P':
+                pass_name = input("Enter Pass name: ").strip()
+                try:
+                    lots = self.search_by_pass(pass_name)
+                    if lots:
+                        print(f"You can park in: {', '.join(lots)}")
+                    else:
+                        print(f"No lots found for pass '{pass_name}'.")
+                except ValueError as e:
+                    print(e)
+            elif choice == 'L':
+                lot_name = input("Enter Lot name: ").strip()
+                try:
+                    passes = self.search_by_lot(lot_name)
+                    if passes:
+                        print(f"Passes that can access '{lot_name}': {', '.join(passes)}")
+                    else:
+                        print(f"No passes found for lot '{lot_name}'.")
+                except ValueError as e:
+                    print(e)
+            else:
+                print("Invalid choice. Type 'P', 'L', or 'quit'.")
 
 # ---------------------------
 # Script Execution
 # ---------------------------
 if __name__ == "__main__":
-    # Create the UNLParking object with your dataset path
-    parking = UNLParking("src/data/parking_data.xlsx")
+    # Opens data
+    parking = UNLParking("UNL_Parking.xlsx")
     
     # Load the data
     parking.load_data()
@@ -253,6 +299,8 @@ if __name__ == "__main__":
         print("Isolated passes:", isolated['isolated_passes'])
         print("Isolated lots:", isolated['isolated_lots'])
     
+    # Draw the graph every time
+    parking.draw_graph()
+    
     # Launch the CLI
     parking.cli()
-
