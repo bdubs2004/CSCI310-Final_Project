@@ -69,15 +69,37 @@ def build_graph(self):
             self.graph.add_edge(permit, lot)
 
 
-    # ---------------------------
-    # Search: Pass → Lots (BFS)
-    # ---------------------------
-    def search_by_pass(self, pass_name):
-        """Return all lots reachable from a pass using BFS."""
-        pass
+# ---------------------------
+# Search: Pass → Lots (BFS)
+# ---------------------------
+def search_by_pass(self, pass_name):
+    """
+    Return all lots reachable from a pass using BFS.
+
+    Parameters
+    ----------
+    pass_name : str
+        The name of the parking pass to search for.
+
+    Returns
+    -------
+    list
+        List of lot names accessible by this pass.
+    """
+    if pass_name not in self.graph:
+        raise ValueError(f"Pass '{pass_name}' not found in the graph.")
+
+    # Perform a BFS from the pass node
+    bfs_nodes = nx.bfs_tree(self.graph, source=pass_name).nodes()
+
+    # Filters only lot nodes
+    lots = [node for node in bfs_nodes if self.graph.nodes[node]['type'] == 'lot']
+
+    return lots
+
 
     # ---------------------------
-    # Search: Lot → Passes (Reverse)
+    # Search: Lot to Passes (Reverse)
     # ---------------------------
     def search_by_lot(self, lot_name):
         """Return all passes that can access a given lot."""
@@ -91,14 +113,14 @@ def build_graph(self):
         pass
 
     # ---------------------------
-    # Visualization (Matplotlib + NetworkX)
+    # Visualization
     # ---------------------------
     def draw_graph(self):
         """Draw the permissions graph."""
         pass
 
     # ---------------------------
-    # Command-Line Interface
+    # Command Line Interface
     # ---------------------------
     def cli(self):
         """Simple CLI for Progress Report 1."""
@@ -106,7 +128,7 @@ def build_graph(self):
 
 
 # ---------------------------
-# Script Execution
+# if __name__ block
 # ---------------------------
 if __name__ == "__main__":
     parking = UNLParking("src/data/parking_data.xlsx")
