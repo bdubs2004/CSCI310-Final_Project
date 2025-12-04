@@ -6,10 +6,8 @@
 Final Project CSCI 310 documentation
 ====================================
 
-CHANGE THE NAME OF THE MODULE hello BELOW AFTER YOU CHANGE THE NAME OF hello.py TO MATCH YOUR PROJECT!
-Then you can change these documentation lines
 
-.. automodule:: hello
+.. automodule:: UNL_Parking
    :members:
    :undoc-members:
    :show-inheritance:
