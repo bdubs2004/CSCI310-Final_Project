@@ -103,7 +103,7 @@ class UNLParking:
                 self.graph.add_edge(permit, lot)
 
     # ---------------------------
-    # Search: Pass → Lots (BFS)
+    # Search: Pass to Lots (BFS)
     # ---------------------------
     def search_by_pass(self, pass_name):
         """
